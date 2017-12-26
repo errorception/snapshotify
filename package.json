@@ -9,7 +9,7 @@
     "test": "mocha",
     "pretest": "eslint . --fix",
     "build": "babel ./src/load-scripts.js --presets babel-preset-es2015 --out-file build/load-scripts.js",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "bin": {
     "snapshotify": "src/index.js"
