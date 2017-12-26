@@ -1,0 +1,63 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "rules": {
+    "no-console": 0,
+    "no-empty": 0,
+    "no-useless-escape": 0,
+    "no-unused-vars": 1,
+    "array-callback-return": 1,
+    "block-scoped-var": 1,
+    "complexity": 1,
+    "no-caller": 1,
+    "no-else-return": 1,
+    "no-eval": 1,
+    "no-floating-decimal": 1,
+    "no-implicit-globals": 1,
+    "no-proto": 1,
+    "no-return-await": 1,
+    "no-self-compare": 1,
+    "no-throw-literal": 1,
+    "no-useless-call": 1,
+    "no-useless-concat": 1,
+    "no-useless-return": 1,
+    "no-with": 1,
+    "prefer-promise-reject-errors": 1,
+    "radix": 1,
+    "vars-on-top": 1,
+    "no-use-before-define": 1,
+    "comma-dangle": 1,
+    "indent": ["error", 2],
+    "no-trailing-spaces": 1,
+    "no-whitespace-before-property": 1,
+    "semi": 1,
+    "space-before-function-paren": ["warn", {
+      "anonymous": "never", "named": "never", "asyncArrow": "always"
+    }],
+    "no-useless-computed-key": 1,
+    "prefer-const": 1,
+    "no-useless-rename": 1,
+    "no-var": 1,
+    "object-shorthand": 1,
+    "prefer-arrow-callback": 1,
+    "prefer-rest-params": 1,
+    "prefer-spread": 1,
+    "arrow-parens": ["warn", "as-needed"],
+    "quotes": ["warn", "single"]
+  },
+  "globals": {
+    "describe": true,
+    "it": true,
+    "before": true,
+    "after": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "snapshotify",
+  "version": "0.0.1",
+  "description": "",
+  "main": "build/load-scripts.js",
+  "scripts": {
+    "test": "mocha",
+    "pretest": "eslint . --fix",
+    "build": "babel ./src/load-scripts.js --presets babel-preset-es2015 --out-file build/load-scripts.js",
+    "prepublish": "npm run build"
+  },
+  "bin": {
+    "snapshotify": "src/index.js"
+  },
+  "author": "rakeshpai",
+  "license": "MIT",
+  "dependencies": {
+    "csso": "^3.4.0",
+    "express": "^4.16.2",
+    "html-minifier": "^3.5.8",
+    "mkdirp": "^0.5.1",
+    "puppeteer": "^0.13.0"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "should": "^13.1.3",
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "eslint": "^4.14.0"
+  }
+}
