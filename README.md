@@ -40,7 +40,7 @@ if (root.hasChildNodes()) {
 
 ```
 
-When you're done, build your app as usual:
+Build your app as usual:
 ```
 npm run build
 ```
@@ -67,9 +67,9 @@ Notes
 ---
 * Works great with CSS-in-JS libs. I've tried `glamor`.
 * When checking performance improvements, it's useful to use network throtting in Chrome devtools.
-* It's a good idea to preload resources you are sure you will need on the page. For example, I use react-helmet to preload fonts with a `<link rel='preload' as='font' href='...' />` tag. Doesn't give you much during dev-time, but is awesome after snapshotting.
-* Async modules (using say `react-loadable`) are handled automatically. These modules are added to the page as `<link rel='preload', as='script' href='n.chunk.hash.js />`, so that they are loaded alongside your main.js. (Normally chunks aren't loaded until after main.js has been downloaded and evaluated.)
-* In my setup, I view the resulting snapshotted app using nginx. The following is my nginx config
+* It's a good idea to preload resources you are sure you will need on the page. For example, I use `react-helmet` to preload fonts with a `<link rel='preload' as='font' href='...' />` tag. Doesn't give you much during dev-time, but is awesome after snapshotting.
+* Async modules (using say `react-loadable`) are handled automatically. These modules are added to the page as `<link rel='preload', as='script' href='n.chunk.hash.js />`, so that they are loaded alongside your `main.js` in parallel. (Normally chunks aren't requested until after `main.js` has been downloaded and evaluated.)
+* In my setup, I view the resulting snapshotted app using nginx. The following is my nginx config.
   ```nginx
   server {
     listen   80;
