@@ -17,6 +17,7 @@
   "author": "rakeshpai",
   "license": "MIT",
   "dependencies": {
+    "concurrent-queue": "^7.0.2",
     "csso": "^3.4.0",
     "express": "^4.16.2",
     "html-minifier": "^3.5.8",

@@ -9,7 +9,7 @@ Creates a static HTML snapshot for your [`create-react-app`](https://github.com/
 
 ***Work in progress***: This module is under development. Many features that you'd need for production use aren't implemented yet. However, you are encouraged to give this module a try to get a sense of the OMG speed. Feedback and contributions welcome!
 
-Inspired by [`react-snapshot`](https://github.com/geelen/react-snapshot) and [`react-snap`](https://github.com/stereobooster/react-snap). This module obsesses about the performance of your built app.
+Inspired by [`react-snapshot`](https://github.com/geelen/react-snapshot) and [`react-snap`](https://github.com/stereobooster/react-snap). This module obsesses over the performance of your built app.
 
 Usage
 ---
@@ -112,5 +112,6 @@ TODO
 * Better CSP support. Inline script and style tags can't be avoided, but we can generate valid CSP hashes for them.
 * Explore options to eliminate flicker with async components.
 * Currently, files are crawled sequentially. Parallelise for speed.
+* Figure out how to play nicely with ServiceWorkers.
 
 License: MIT

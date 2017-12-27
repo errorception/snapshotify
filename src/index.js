@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
-const crawlQueue = require('./crawl-queue');
+const crawl = require('./crawler');
 const createExpressApp = require('./create-express-app');
-const processPath = require('./process-path');
 const path = require('path');
-const puppeteer = require('puppeteer');
 const mkdirp = require('mkdirp');
 const { writeFile } = require('fs');
 const { promisify } = require('util');
-const { gzipSync } = require('zlib');
+const { gzip } = require('zlib');
+const pgzip = promisify(gzip);
 
 process.on('unhandledRejection', console.log);
 
@@ -32,23 +31,7 @@ const write = async (diskPath, markup) => {
 
   const app = createExpressApp(path.join(process.cwd(), 'build'));
   const server = await app.listen(port);
-  const queue = crawlQueue(root);
-
-  queue.add([`${root}/`]);
-  const filesToWrite = [];
-
-  const browser = await puppeteer.launch();
-
-  while(queue.hasItems()) {
-    await queue.next(async path => {
-      const { markup, links } = await processPath({ browser, path });
-
-      filesToWrite.push({ path, markup });
-      queue.add(links);
-    });
-  }
-
-  await browser.close();
+  const filesToWrite = await crawl({ paths: [`${root}/`], root });
 
   await Promise.all(filesToWrite.map(({ path, markup }) => write(path, markup)));
   await server.close();
@@ -56,8 +39,10 @@ const write = async (diskPath, markup) => {
   // Snapshot report
   console.log('\nFile sizes after gzip:\n');
 
-  filesToWrite.forEach(({ path, markup }) => {
-    const gzippedSize = (gzipSync(markup).length / 1024).toFixed(2);
+  (await Promise.all(
+    filesToWrite.map(async ({ path, markup }) => ({ path, gzipped: await pgzip(markup) }))
+  )).forEach(({ path, gzipped }) => {
+    const gzippedSize = (gzipped.length / 1024).toFixed(2);
     const pathSnipped = path.slice(root.length) || '/';
     const paddedGzippedSize = `     ${gzippedSize}`;
 
@@ -65,7 +50,7 @@ const write = async (diskPath, markup) => {
   });
 
   console.log('\n');
-  console.log(`\x1b[2mSnapshot generated in ${((Date.now() - startTime)/1000).toFixed(2)}s.\x1b[0m\n`);
+  console.log(`\x1b[2mSnapshotted ${filesToWrite.length} pages in ${((Date.now() - startTime)/1000).toFixed(2)}s.\x1b[0m\n`);
 
   process.exit();
 })();
