@@ -1,11 +1,15 @@
 snapshotify
 ===
+[![NPM version](https://img.shields.io/npm/v/snapshotify.svg)](https://www.npmjs.com/package/snapshotify)
+[![Build Status](https://travis-ci.org/errorception/snapshotify.svg?branch=master)](https://travis-ci.org/errorception/snapshotify)
+[![dependencies Status](https://img.shields.io/david/errorception/snapshotify.svg)](https://david-dm.org/errorception/snapshotify)
 
-Creates a static HTML snapshot for your `create-react-app` app, to improve initial page load times. Makes for blazing fast initial page load times, and improves SEO.
 
-***Work in progress***: This module is still being developed. Many features that you'd need for production use aren't implemented yet. However, you are encouraged to give this module a try and give feedback!
+Creates a static HTML snapshot for your [`create-react-app`](https://github.com/facebookincubator/create-react-app) app, to improve initial page load times. Makes for blazing fast load times, and improves SEO.
 
-Inspired by `react-snapshot` and `react-snap`. While these projects are awesome for creating snapshots, this module obsesses about the performance of your built app.
+***Work in progress***: This module is under development. Many features that you'd need for production use aren't implemented yet. However, you are encouraged to give this module a try to get a sense of the OMG speed. Feedback and contributions welcome!
+
+Inspired by [`react-snapshot`](https://github.com/geelen/react-snapshot) and [`react-snap`](https://github.com/stereobooster/react-snap). This module obsesses about the performance of your built app.
 
 Usage
 ---
@@ -14,8 +18,8 @@ Install using npm:
 npm install snapshotify
 ```
 
-Modify the `scripts` in your package.json to add a `postbuild` key:
-```json
+Modify the `scripts` in your package.json to add a `"postbuild"` key:
+```js
 {
   ...
   "scripts": {
@@ -28,16 +32,17 @@ Modify the `scripts` in your package.json to add a `postbuild` key:
 
 Then, modify your `index.js` to wait before hydration:
 ```js
+import React from 'react';
+import { hydrate, render } from 'react-dom';
 import loadScripts from 'snapshotify';
-// ...
+import App from './App';
 
-const root = document.getElementById('root');
-if (root.hasChildNodes()) {
-  loadScripts().then(() => hydrate(<App />, root));
+const rootElement = document.getElementById('root');
+if (rootElement.hasChildNodes()) {
+  loadScripts().then(() => hydrate(<App />, rootElement));
 } else {
-  render(<App />, root);
+  render(<App />, rootElement);
 }
-
 ```
 
 Build your app as usual:
@@ -51,25 +56,30 @@ What it achieves
 * Better SEO, at least for crawlers that don't execute JS.
 
 
-How it works
+What it does
 ---
 
-* Starts a temporary web server to serve your built create-react-app app.
-* Uses `puppeteer` to launch a headless browser to load your app in Chromium.
-* Extracts the minimum CSS needed to render your app. Embeds this into the markup of your HTML directly as an inline style tag, after minifying it further with `CSSO`.
+* Starts a temporary web server using [`express`](https://expressjs.com/) to serve your built `create-react-app` app.
+* Uses [`puppeteer`](https://github.com/GoogleChrome/puppeteer) to launch a headless browser to render your app.
+* Extracts the minimum CSS needed to render your app.
+  - Rejects CSS rules for DOM nodes that aren't in your page.
+  - Preserves rules like `@font-face`.
+  - Preserves pseudo-selectors like `::before` or `:hover` for nodes that are on page.
+  - Preserves media queries, but again rejects rules for DOM nodes that aren't in the page.
+* Minifies the resulting minimal CSS using [`CSSO`](https://github.com/css/csso). Embeds this into the markup of your HTML directly as an inline style tag.
 * Removes all external script tags (typically your `main.hash.js`), and includes them instead as `<link rel='preload' as='script' href='main.hash.js' />`.
 * Adds an inline script loader to load your script files asynchronously, so that page load is not held up.
-* Uses `html-minifier` to minify the whole HTML, making several micro-optimisations.
-* Recursively crawls any links you have (useful if you're using client-side routing like with `react-router`), and optimises those pages too.
-* Writes all the built html files to your build folder, ready for mounting directly to a web-server like nginx.
+* Uses [`html-minifier`](https://github.com/kangax/html-minifier) to minify the whole resulting HTML, making several micro-optimisations.
+* Recursively crawls any links you have (useful if you're using client-side routing like with [`react-router`](https://github.com/ReactTraining/react-router)), and optimises those pages too.
+* Writes all the built pre-rendered html files to your build folder, ready for mounting directly to a web-server like nginx.
 
 Notes
 ---
 * Works great with CSS-in-JS libs. I've tried `glamor`.
 * When checking performance improvements, it's useful to use network throtting in Chrome devtools.
-* It's a good idea to preload resources you are sure you will need on the page. For example, I use `react-helmet` to preload fonts with a `<link rel='preload' as='font' href='...' />` tag. Doesn't give you much during dev-time, but is awesome after snapshotting.
-* Async modules (using say `react-loadable`) are handled automatically. These modules are added to the page as `<link rel='preload', as='script' href='n.chunk.hash.js />`, so that they are loaded alongside your `main.js` in parallel. (Normally chunks aren't requested until after `main.js` has been downloaded and evaluated.)
-* In my setup, I view the resulting snapshotted app using nginx. The following is my nginx config.
+* It's a good idea to preload resources you are sure you will need on the page. For example, I use [`react-helmet`](https://github.com/nfl/react-helmet) to preload fonts with a `<link rel='preload' as='font' href='...' />` tag. Doesn't give you much during dev-time, but is awesome after generating the snapshot.
+* Async modules loaded using dynamic `import(...)` (say through [`react-loadable`](https://github.com/thejameskyle/react-loadable)) are handled automatically. These modules are added to the page as `<link rel='preload', as='script' href='n.chunk.hash.js />`, so that they are loaded alongside your `main.js` in parallel. (Normally chunks aren't requested until after `main.js` has been downloaded and evaluated.)
+* In my setup, I view the resulting snapshot app using nginx. The following is my nginx config.
   ```nginx
   server {
     listen   80;
@@ -94,6 +104,7 @@ Notes
 
   ```
 * If preloading async components for future (not immediate) use, do so after a slight delay (say 500ms), so that snapshotify doesn't see them during the build.
+
 
 TODO
 ---
