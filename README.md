@@ -111,7 +111,6 @@ TODO
 * Handling routes that can't be crawled (like stuff behind a login form). Does not make sense to snapshot these routes, but at least load the index.html correctly for the first request. This is a v1 blocker.
 * Better CSP support. Inline script and style tags can't be avoided, but we can generate valid CSP hashes for them.
 * Explore options to eliminate flicker with async components.
-* Currently, files are crawled sequentially. Parallelise for speed.
 * Figure out how to play nicely with ServiceWorkers.
 
 License: MIT

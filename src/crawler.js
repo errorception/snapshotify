@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 
 module.exports = async ({ paths, root }) => {
   const completed = [];
-  let enqueued = [];
+  const enqueued = [];
 
   const dedupeLinks = links => [...new Set(links)]
     .filter(l => l.startsWith(root))  // Don't crawl stuff that's not on our domain
@@ -12,26 +12,19 @@ module.exports = async ({ paths, root }) => {
       while(l.endsWith('/')) l = l.slice(0, -1); // Strip trailing slashes
       return l;
     })
-    .filter(l => !completed.some(({ path }) => path === l))
-    .filter(l => !enqueued.includes(l));
+    .filter(l => !enqueued.includes(l))   // Ensure we haven't seen it before
+    .map(l => { enqueued.push(l); return l; }); // Remember, and return
 
   const browser = await puppeteer.launch();
 
   const queue = cq().limit({ concurrency: 10 }).process(async path => {
     const { markup, links } = await processPath({ browser, path });
     completed.push({ path, markup });
-    enqueued = enqueued.filter(p => p !== path);
 
-    dedupeLinks(links).forEach(link => {
-      enqueued.push(link);
-      queue(link);
-    });
+    dedupeLinks(links).forEach(link => queue(link));
   });
 
-  dedupeLinks(paths).forEach(link => {
-    enqueued.push(link);
-    queue(link);
-  });
+  dedupeLinks(paths).forEach(link => queue(link));
 
   return new Promise(queue.drained)
     .then(() => browser.close())
