@@ -73,6 +73,26 @@ What it does
 * Recursively crawls any links you have (useful if you're using client-side routing like with [`react-router`](https://github.com/ReactTraining/react-router)), and optimises those pages too.
 * Writes all the built pre-rendered html files to your build folder, ready for mounting directly to a web-server like nginx.
 
+Configuration
+---
+
+### Specifying a config file
+When invoking `snapshotify`, you can pass an additional parameter to specify your config file:
+```
+snapshotify --config snapshot.json
+```
+If you don't specify a `--config`, it defaults to `snapshot.json`. If the config file can't be found, defaults as specified below are used.
+
+### `snapshot.json`
+The config file can have any of the following properties:
+
+* `inlineCSS`: (boolean, default `true`) Extracts the minimal CSS required for the initial render of the page, and inlines it as a style tag. You may want to disable this if the minimal CSS is already in the DOM as a style tag, which might be the case if you're using a CSS-in-JS lib that uses style tags.
+* `preloadScripts`: (boolean, default `true`) Preloads your script file(s) using `<link rel='preload' as='script' href='...'>`, and injects an inline script loader to execute your code only after script preloading is complete. If your initial render depends on one or more dynamically `import`ed components, all the code-split chunks as preloaded as well. The combination of the preloading and the script loader ensures that you get to the window-onload event as soon as possible.
+
+The following properties are mostly only useful for debugging:
+* `dryRun`: (boolean, default `false`) Does a dry run. Doesn't write any files to the `build` directory. Just generates a report after processing your app.
+* `printConsoleLogs`: (boolean, default `false`) Prints `console.log` lines from your app, as reported by `puppeteer`, to stdout.
+
 Notes
 ---
 * Works great with CSS-in-JS libs. I've tried `glamor`.

@@ -32,6 +32,7 @@ module.exports.getStyleRules = async page => withPage(page, () => {
     const matchedSelectors = selectorText.split(',').filter(selector => {
       if(selector.trim().startsWith('@')) return true; // @font-face, etc.
       selector = selector.replace(/::.*/i, ''); // ::after, etc.
+      if(!selector.trim()) return true; // In case the rule was only ::after { ... }
       return !!document.querySelector(selector);
     });
 
@@ -56,6 +57,9 @@ module.exports.getStyleRules = async page => withPage(page, () => {
 
       return `${mediaQueryText} { ${styleString} }`;
     }
+    
+    if(styleRule.trim().startsWith('@keyframes')) return styleRule;
+    if(styleRule.trim().startsWith('@-webkit-keyframes')) return false;
 
     return cleanUpStyleRule(styleRule);
   }).filter(x => !!x);
@@ -77,4 +81,23 @@ module.exports.preloadifyScripts = async page => withPage(page, () => {
     addLinkTag({rel: 'preload', as: 'script', 'href': script.getAttribute('src')});
     removeScript(script); // Remove all our scripts!!!
   });
+});
+
+module.exports.preloadifyStylesheets = async page => withPage(page, () => {
+  const stylesheets = [ ...document.querySelectorAll('link[rel=stylesheet]') ];
+  stylesheets.forEach(linkTag => {
+    const preloadTag = document.createElement('link');
+    Object.entries({ rel: 'preload', as: 'style', href: linkTag.getAttribute('href') })
+      .map(([key, value]) => preloadTag.setAttribute(key, value));
+
+    const noscript = document.createElement('noscript');
+    linkTag.parentNode.insertBefore(noscript, linkTag);
+    linkTag.parentNode.removeChild(linkTag);
+    noscript.appendChild(linkTag);
+
+    // noscript.parentNode.insertBefore(preloadTag, noscript);
+    document.body.appendChild(preloadTag);
+  });
+
+  return stylesheets.length;
 });

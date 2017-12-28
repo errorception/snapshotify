@@ -1,15 +1,36 @@
 #!/usr/bin/env node
 
+const program = require('commander');
 const crawl = require('./crawler');
 const createExpressApp = require('./create-express-app');
 const path = require('path');
 const mkdirp = require('mkdirp');
-const { writeFile } = require('fs');
+const { writeFile, readFileSync } = require('fs');
 const { promisify } = require('util');
 const { gzip } = require('zlib');
 const pgzip = promisify(gzip);
 
+const defaultConfig = {
+  inlineCSS: true,
+  preloadScripts: true,
+  dryRun: false,
+  printConsoleLogs: false
+};
+
 process.on('unhandledRejection', console.log);
+
+program
+  .version(JSON.parse(readFileSync(path.join(__dirname, '..', 'package.json'))).version)
+  .option('-c, --config', 'Configuration file');
+
+const configFile = program.config || path.join(process.cwd(), 'snapshot.json');
+
+let config = {};
+try {
+  config = JSON.parse(readFileSync(configFile));
+} catch(e) {}
+
+config = { ...config, ...defaultConfig };
 
 const port = 9000;
 const root = `http://localhost:${port}`;
@@ -31,10 +52,12 @@ const write = async (diskPath, markup) => {
 
   const app = createExpressApp(path.join(process.cwd(), 'build'));
   const server = await app.listen(port);
-  const filesToWrite = await crawl({ paths: [`${root}/`], root });
-
-  await Promise.all(filesToWrite.map(({ path, markup }) => write(path, markup)));
+  const filesToWrite = await crawl({ paths: [`${root}/`], root, config });
   await server.close();
+
+  if(!config.dryRun) {
+    await Promise.all(filesToWrite.map(({ path, markup }) => write(path, markup)));
+  }
 
   // Snapshot report
   console.log('\nFile sizes after gzip:\n');

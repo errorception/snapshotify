@@ -3,47 +3,69 @@ const { promisify } = require('util');
 const { readFile } = require('fs');
 const { join } = require('path');
 const { minify } = require('html-minifier');
+const delay = require('delay2');
 const {
   getLinksOnPage, preloadifyScripts, getStyleRules,
-  getMarkup, removeEmptyStyleTags
+  getMarkup, removeEmptyStyleTags, preloadifyStylesheets
 } = require('./in-browser-scripts');
 
-const scriptLoader = promisify(readFile)(join(__dirname, 'script-loader-stub.js'));
+const [scriptLoader, stylesheetLoader] = [
+  'script-loader-stub.js',
+  'style-loader-stub.js'
+].map(f => promisify(readFile)(join(__dirname, f)));
 
-const injectScriptLoader = async page => page.addScriptTag({
-  content: (await scriptLoader).toString('utf8')
+const minifierOptions = {
+  minifyJS: true,
+  collapseWhitespace: true,
+  collapseBooleanAttributes: true,
+  removeAttributeQuotes: true,
+  removeRedundantAttributes: true,
+  removeScriptTypeAttribute: true,
+  removeStyleLinkTypeAttributes: true,
+  sortAttributes: true
+};
+
+const wrapScripts = str => `window.addEventListener('load', function(){${str}});`;
+
+const injectLoaderScript = async (page, scriptsToInsert) => page.addScriptTag({
+  content: wrapScripts((await Promise.all(scriptsToInsert)).join('\n'))
 });
 
-module.exports = async ({ browser, path }) => {
+module.exports = async ({ browser, path, config }) => {
   const page = await browser.newPage();
 
   await page.goto(path);
+  await delay(50);
 
-  page.on('console', msg => {
-    for (let i = 0; i < msg.args.length; ++i) {
-      console.log(`${i}: ${msg.args[i]}`);
-    }
-  });
+  if(config.printConsoleLogs) {
+    page.on('console', msg => {
+      for (let i = 0; i < msg.args.length; ++i) {
+        console.log(`[browser-console] - ${path} - ${i}: ${msg.args[i]}`);
+      }
+    });
+  }
 
-  const rulesToInline = [ ...new Set(await getStyleRules(page)) ];
-  const minimalStyles = csso.minify(rulesToInline.join('')).css;
-  await page.addStyleTag({ content: minimalStyles });
+  const scriptsToInsert = [];
 
-  await preloadifyScripts(page);
-  await injectScriptLoader(page);
+  if(config.inlineCSS) {
+    const rulesToInline = [ ...new Set(await getStyleRules(page)) ];
+    const minimalStyles = csso.minify(rulesToInline.join('')).css;
+    await page.addStyleTag({ content: minimalStyles });
+
+    const stylesheetCount = await preloadifyStylesheets(page);
+    if(stylesheetCount) scriptsToInsert.push(stylesheetLoader);
+  }
+
+  if(config.preloadScripts) {
+    await preloadifyScripts(page);
+    scriptsToInsert.push(scriptLoader);
+  }
+
+  if(scriptsToInsert.length) {
+    await injectLoaderScript(page, scriptsToInsert);
+  }
 
   await removeEmptyStyleTags(page);
-
-  const minifierOptions = {
-    minifyJS: true,
-    collapseWhitespace: true,
-    collapseBooleanAttributes: true,
-    removeAttributeQuotes: true,
-    removeRedundantAttributes: true,
-    removeScriptTypeAttribute: true,
-    removeStyleLinkTypeAttributes: true,
-    sortAttributes: true
-  };
 
   const [ markup, links ] = await Promise.all([
     minify(await getMarkup(page), minifierOptions),

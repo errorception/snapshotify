@@ -2,7 +2,7 @@ const cq = require('concurrent-queue');
 const processPath = require('./process-path');
 const puppeteer = require('puppeteer');
 
-module.exports = async ({ paths, root }) => {
+module.exports = async ({ paths, root, config }) => {
   const completed = [];
   const enqueued = [];
 
@@ -18,7 +18,7 @@ module.exports = async ({ paths, root }) => {
   const browser = await puppeteer.launch();
 
   const queue = cq().limit({ concurrency: 10 }).process(async path => {
-    const { markup, links } = await processPath({ browser, path });
+    const { markup, links } = await processPath({ browser, path, config });
     completed.push({ path, markup });
 
     dedupeLinks(links).forEach(link => queue(link));

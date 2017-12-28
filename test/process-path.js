@@ -18,7 +18,11 @@ describe('process-path', () => {
     server = await app.listen(port);
 
     const browser = await puppeteer.launch();
-    processed = await processPath({ browser, path: `${root}/` });
+    const config = {
+      inlineCSS: true,
+      preloadScripts: true
+    };
+    processed = await processPath({ browser, path: `${root}/`, config });
     await browser.close();
   });
 
@@ -44,6 +48,10 @@ describe('process-path', () => {
 
   it('should not inline unnecessary styles', () => {
     processed.markup.includes('.test3').should.be.false;
+  });
+
+  it('should remove link rel=stylesheet, and replace with preload', () => {
+    processed.markup.includes('<link href=/index.css rel=preload as=style><noscript><link href=/index.css rel=stylesheet></noscript>').should.be.true;
   });
 
   it('should remove script[src] tags', () => {

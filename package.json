@@ -17,8 +17,10 @@
   "author": "rakeshpai",
   "license": "MIT",
   "dependencies": {
+    "commander": "^2.12.2",
     "concurrent-queue": "^7.0.2",
     "csso": "^3.4.0",
+    "delay2": "^1.0.2",
     "express": "^4.16.2",
     "html-minifier": "^3.5.8",
     "mkdirp": "^0.5.1",
