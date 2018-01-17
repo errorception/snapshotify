@@ -1,11 +1,45 @@
-.test1 {
+@font-face {
+  font-family: 'MyWebFont';
+  src: url('webfont.woff2') format('woff2'),
+       url('webfont.woff') format('woff'),
+       url('webfont.ttf')  format('truetype');
+}
+
+@font-face {
+  font-family: 'UnusedFont';
+  src: url('unused-font.woff2') format('woff2'),
+       url('unused-font.woff') format('woff'),
+       url('unused-font.ttf')  format('truetype');
+}
+
+@font-face {
+  font-family: 'NotImmediatelyNeeded';
+  src: url('not-immediately-needed.woff2') format('woff2'),
+       url('not-immediately-needed.woff') format('woff'),
+       url('not-immediately-needed.ttf')  format('truetype');
+}
+
+.test1, .test-foo {
   color: red;
+  font-family: 'MyWebFont', sans-serif;
 }
 
 .test2 {
   color: blue;
 }
 
+.test1:before {
+  color: 'cyan';
+}
+
 .test3 {  /* This isn't used */
   color: white;
+  font-family: 'NotImmediatelyNeeded', sans-serif;
 }
+
+@media screen and (min-width: 480px) {
+  .test1 {
+    font-weight: bold;
+  }
+}
+

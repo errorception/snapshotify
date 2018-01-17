@@ -21,50 +21,6 @@ module.exports.getMarkup = async page => withPage(page, () => {
   return '<!DOCTYPE html>' + document.documentElement.outerHTML;
 });
 
-module.exports.getStyleRules = async page => withPage(page, () => {
-  const styleRules = [].concat(...[...document.styleSheets].map(stylesheet => {
-    return [...stylesheet.rules].map(rule => rule.cssText);
-  }));
-
-  const cleanUpStyleRule = styleRule => {
-    const [, selectorText, styleText] = styleRule.match(/(.*){(.*)}/);
-
-    const matchedSelectors = selectorText.split(',').filter(selector => {
-      if(selector.trim().startsWith('@')) return true; // @font-face, etc.
-      selector = selector.replace(/::.*/i, ''); // ::after, etc.
-      if(!selector.trim()) return true; // In case the rule was only ::after { ... }
-      return !!document.querySelector(selector);
-    });
-
-    if(!matchedSelectors.length) return false;
-
-    return `${matchedSelectors.join(', ')} { ${styleText} }`;
-  };
-
-  const mediaQueryRegex = /(@media[^{]+)\{([\s\S]+?})\s*}/i;
-
-  return [...new Set(styleRules)].map(styleRule => {
-    let mediaQueryText;
-
-    if(styleRule.trim().startsWith('@media')) {
-      [,mediaQueryText, styleRule] = styleRule.trim().match(mediaQueryRegex);
-
-      const styleString = styleRule
-        .match(/([\s\S]+?})/gi)
-        .map(cleanUpStyleRule)
-        .filter(x => !!x)
-        .join('');
-
-      return `${mediaQueryText} { ${styleString} }`;
-    }
-    
-    if(styleRule.trim().startsWith('@keyframes')) return styleRule;
-    if(styleRule.trim().startsWith('@-webkit-keyframes')) return false;
-
-    return cleanUpStyleRule(styleRule);
-  }).filter(x => !!x);
-});
-
 module.exports.preloadifyScripts = async page => withPage(page, () => {
   const removeScript = s => s.parentNode.removeChild(s);
   const addLinkTag = link => {
@@ -101,3 +57,15 @@ module.exports.preloadifyStylesheets = async page => withPage(page, () => {
 
   return stylesheets.length;
 });
+
+module.exports.preloadifyFonts = async (page, fonts) => page.evaluate(fonts => {
+  fonts.forEach(font => {
+    const link = document.createElement('link');
+
+    Object.entries({ rel: 'preload', href: font, as: 'font', type: 'font/woff2' })
+      .forEach(([key, value]) => link.setAttribute(key, value));
+
+    link.setAttribute('crossorigin', 'crossorigin');
+    document.head.appendChild(link);
+  });
+}, fonts);

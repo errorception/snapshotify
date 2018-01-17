@@ -24,6 +24,7 @@
     "express": "^4.16.2",
     "html-minifier": "^3.5.8",
     "mkdirp": "^0.5.1",
+    "postcss": "^6.0.16",
     "puppeteer": "^0.13.0"
   },
   "devDependencies": {

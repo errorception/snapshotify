@@ -4,9 +4,10 @@ const { readFile } = require('fs');
 const { join } = require('path');
 const { minify } = require('html-minifier');
 const delay = require('delay2');
+const getMinimalCss = require('./min-css');
 const {
-  getLinksOnPage, preloadifyScripts, getStyleRules,
-  getMarkup, removeEmptyStyleTags, preloadifyStylesheets
+  getLinksOnPage, removeEmptyStyleTags, getMarkup,
+  preloadifyScripts, preloadifyStylesheets, preloadifyFonts
 } = require('./in-browser-scripts');
 
 const [scriptLoader, stylesheetLoader] = [
@@ -47,14 +48,22 @@ module.exports = async ({ browser, path, config }) => {
 
   const scriptsToInsert = [];
 
-  if(config.inlineCSS) {
-    const rulesToInline = [ ...new Set(await getStyleRules(page)) ];
-    const minimalStyles = csso.minify(rulesToInline.join('')).css;
-    await page.addStyleTag({ content: minimalStyles });
+  if(config.inlineCSS || config.preloadFonts) {
+    const { css, fonts } = await getMinimalCss(page);
 
-    const stylesheetCount = await preloadifyStylesheets(page);
-    if(stylesheetCount) scriptsToInsert.push(stylesheetLoader);
+    if(config.inlineCSS) {
+      const minimalStyles = csso.minify(css).css;
+      await page.addStyleTag({ content: minimalStyles });
+
+      const stylesheetCount = await preloadifyStylesheets(page);
+      if(stylesheetCount) scriptsToInsert.push(stylesheetLoader);
+    }
+
+    if(config.preloadFonts) {
+      await preloadifyFonts(page, fonts);
+    }
   }
+
 
   if(config.preloadScripts) {
     await preloadifyScripts(page);

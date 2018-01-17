@@ -13,6 +13,7 @@ const pgzip = promisify(gzip);
 const defaultConfig = {
   inlineCSS: true,
   preloadScripts: true,
+  preloadFonts: true,
   dryRun: false,
   printConsoleLogs: false
 };

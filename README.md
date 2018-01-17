@@ -61,17 +61,22 @@ What it does
 
 * Starts a temporary web server using [`express`](https://expressjs.com/) to serve your built `create-react-app` app.
 * Uses [`puppeteer`](https://github.com/GoogleChrome/puppeteer) to launch a headless browser to render your app.
-* Extracts the minimum CSS needed to render your app.
+* Extracts the minimum CSS needed to render your app, using [`postcss`](http://postcss.org/) to parse the CSS into an AST.
   - Rejects CSS rules for DOM nodes that aren't in your page.
   - Preserves rules like `@font-face`.
   - Preserves pseudo-selectors like `::before` or `:hover` for nodes that are on page.
   - Preserves media queries, but again rejects rules for DOM nodes that aren't in the page.
 * Minifies the resulting minimal CSS using [`CSSO`](https://github.com/css/csso). Embeds this into the markup of your HTML directly as an inline style tag.
+* Identifies the minimal fonts needed for the first render of the page, and preloads them using `<link rel='preload' as='font' type='font/woff2' href=''>`.
 * Removes all external script tags (typically your `main.hash.js`), and includes them instead as `<link rel='preload' as='script' href='main.hash.js' />`.
-* Adds an inline script loader to load your script files asynchronously, so that page load is not held up.
+* Identifies the chunks needed for the render of the page, and preloads them too. This downloads all the needed scripts in parallel. (Usually, requests for chunks are only issued after the main script has loaded, which makes it sequential.)
+* Adds an inline script loader to inject your main script file asynchronously and after page load, so that page load is not held up.
+* Removes all external stylesheets, and adds them as `<link rel='preload'>` instead. After page load, a CSS loader injected in the page adds the external CSS files. A fallback is also added, for browsers that don't support JS, so that styles don't appear broken for non-JS browsers.
 * Uses [`html-minifier`](https://github.com/kangax/html-minifier) to minify the whole resulting HTML, making several micro-optimisations.
 * Recursively crawls any links you have (useful if you're using client-side routing like with [`react-router`](https://github.com/ReactTraining/react-router)), and optimises those pages too.
 * Writes all the built pre-rendered html files to your build folder, ready for mounting directly to a web-server like nginx.
+
+As a result of the optimisations above, the page load time is drastically improved. Only the markup, fonts (if any), and images (if any) are actually needed for page load. External script files (typically your `main.js`) and external CSS files (`index.css`) are not injected into the page until after page load, so that they do not contribute to the page load time. Even so, the script files, all of the needed code-split chunks, external CSS files and fonts are *donwloaded* as soon as possible, and all in parallel, so that your page's startup time is as quick as possible, and your JS starts up faster than usual.
 
 Configuration
 ---
@@ -88,6 +93,7 @@ The config file can have any of the following properties:
 
 * `inlineCSS`: (boolean, default `true`) Extracts the minimal CSS required for the initial render of the page, and inlines it as a style tag. You may want to disable this if the minimal CSS is already in the DOM as a style tag, which might be the case if you're using a CSS-in-JS lib that uses style tags.
 * `preloadScripts`: (boolean, default `true`) Preloads your script file(s) using `<link rel='preload' as='script' href='...'>`, and injects an inline script loader to execute your code only after script preloading is complete. If your initial render depends on one or more dynamically `import`ed components, all the code-split chunks as preloaded as well. The combination of the preloading and the script loader ensures that you get to the window-onload event as soon as possible.
+* `preloadFonts`: (boolean, default `true`) Identifies the fonts needed for the initial render of the page, and preloads them using a `<link rel='preload' as='font' type='font/woff2' href=''>`. Only preloads a `woff2` font, since all browsers that support preloading also support (and prefer) a `woff2` font.
 
 The following properties are mostly only useful for debugging:
 * `dryRun`: (boolean, default `false`) Does a dry run. Doesn't write any files to the `build` directory. Just generates a report after processing your app.
@@ -97,7 +103,6 @@ Notes
 ---
 * Works great with CSS-in-JS libs. I've tried `glamor`.
 * When checking performance improvements, it's useful to use network throtting in Chrome devtools.
-* It's a good idea to preload resources you are sure you will need on the page. For example, I use [`react-helmet`](https://github.com/nfl/react-helmet) to preload fonts with a `<link rel='preload' as='font' href='...' />` tag. Doesn't give you much during dev-time, but is awesome after generating the snapshot.
 * Async modules loaded using dynamic `import(...)` (say through [`react-loadable`](https://github.com/thejameskyle/react-loadable)) are handled automatically. These modules are added to the page as `<link rel='preload', as='script' href='n.chunk.hash.js />`, so that they are loaded alongside your `main.js` in parallel. (Normally chunks aren't requested until after `main.js` has been downloaded and evaluated.)
 * In my setup, I view the resulting snapshot app using nginx. The following is my nginx config.
   ```nginx
