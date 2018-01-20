@@ -5,6 +5,8 @@ const { join } = require('path');
 const { minify } = require('html-minifier');
 const delay = require('delay2');
 const getMinimalCss = require('./min-css');
+const addCSP = require('./add-csp');
+const { minify: minifyJs } = require('uglify-js');
 const {
   getLinksOnPage, removeEmptyStyleTags, getMarkup,
   preloadifyScripts, preloadifyStylesheets, preloadifyFonts
@@ -16,7 +18,6 @@ const [scriptLoader, stylesheetLoader] = [
 ].map(f => promisify(readFile)(join(__dirname, f)));
 
 const minifierOptions = {
-  minifyJS: true,
   collapseWhitespace: true,
   collapseBooleanAttributes: true,
   removeAttributeQuotes: true,
@@ -27,10 +28,6 @@ const minifierOptions = {
 };
 
 const wrapScripts = str => `window.addEventListener('load', function(){${str}});`;
-
-const injectLoaderScript = async (page, scriptsToInsert) => page.addScriptTag({
-  content: wrapScripts((await Promise.all(scriptsToInsert)).join('\n'))
-});
 
 module.exports = async ({ browser, path, config }) => {
   const page = await browser.newPage();
@@ -53,6 +50,7 @@ module.exports = async ({ browser, path, config }) => {
 
     if(config.inlineCSS) {
       const minimalStyles = csso.minify(css).css;
+      await addCSP(page, 'style-src', minimalStyles, config);
       await page.addStyleTag({ content: minimalStyles });
 
       const stylesheetCount = await preloadifyStylesheets(page);
@@ -64,14 +62,18 @@ module.exports = async ({ browser, path, config }) => {
     }
   }
 
-
   if(config.preloadScripts) {
     await preloadifyScripts(page);
     scriptsToInsert.push(scriptLoader);
   }
 
   if(scriptsToInsert.length) {
-    await injectLoaderScript(page, scriptsToInsert);
+    const scriptContents = minifyJs(
+      wrapScripts((await Promise.all(scriptsToInsert)).join('\n'))
+    ).code;
+
+    await addCSP(page, 'script-src', scriptContents, config);
+    await page.addScriptTag({ content: scriptContents });
   }
 
   await removeEmptyStyleTags(page);

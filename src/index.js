@@ -14,6 +14,8 @@ const defaultConfig = {
   inlineCSS: true,
   preloadScripts: true,
   preloadFonts: true,
+  addCSPHashes: true,
+  cspAlgo: 'sha256',
   dryRun: false,
   printConsoleLogs: false
 };

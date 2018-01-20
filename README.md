@@ -94,6 +94,8 @@ The config file can have any of the following properties:
 * `inlineCSS`: (boolean, default `true`) Extracts the minimal CSS required for the initial render of the page, and inlines it as a style tag. You may want to disable this if the minimal CSS is already in the DOM as a style tag, which might be the case if you're using a CSS-in-JS lib that uses style tags.
 * `preloadScripts`: (boolean, default `true`) Preloads your script file(s) using `<link rel='preload' as='script' href='...'>`, and injects an inline script loader to execute your code only after script preloading is complete. If your initial render depends on one or more dynamically `import`ed components, all the code-split chunks as preloaded as well. The combination of the preloading and the script loader ensures that you get to the window-onload event as soon as possible.
 * `preloadFonts`: (boolean, default `true`) Identifies the fonts needed for the initial render of the page, and preloads them using a `<link rel='preload' as='font' type='font/woff2' href=''>`. Only preloads a `woff2` font, since all browsers that support preloading also support (and prefer) a `woff2` font.
+* `addCSPHashes`: (boolean, default `true`) If your page has a CSP `<meta>` tag, setting this flag adds `style-src` and `script-src` hashes to the CSP policy, to allow the inline style and script tags added during the snapshot process. If the CSP meta tag isn't present, this rule has no effect. If any of the directives has `'unsafe-inline'` already present, hashes aren't added.
+* `cspAlgo`: (string, default `sha256`) The algorithm to be used for calculating the CSP hash. Possible values are `sha256`, `sha384` or `sha512`. This property is only used if `addCSPHashes` is `true`.
 
 The following properties are mostly only useful for debugging:
 * `dryRun`: (boolean, default `false`) Does a dry run. Doesn't write any files to the `build` directory. Just generates a report after processing your app.
@@ -134,7 +136,6 @@ Notes
 TODO
 ---
 * Handling routes that can't be crawled (like stuff behind a login form). Does not make sense to snapshot these routes, but at least load the index.html correctly for the first request. This is a v1 blocker.
-* Better CSP support. Inline script and style tags can't be avoided, but we can generate valid CSP hashes for them.
 * Explore options to eliminate flicker with async components.
 * Figure out how to play nicely with ServiceWorkers.
 

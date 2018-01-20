@@ -19,13 +19,15 @@
   "dependencies": {
     "commander": "^2.13.0",
     "concurrent-queue": "^7.0.2",
+    "csp-parse": "0.0.2",
     "csso": "^3.5.0",
     "delay2": "^1.0.2",
     "express": "^4.16.2",
     "html-minifier": "^3.5.8",
     "mkdirp": "^0.5.1",
     "postcss": "^6.0.16",
-    "puppeteer": "^1.0.0"
+    "puppeteer": "^1.0.0",
+    "uglify-js": "^3.3.7"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
