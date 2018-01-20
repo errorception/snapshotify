@@ -72,6 +72,7 @@ What it does
 * Identifies the chunks needed for the render of the page, and preloads them too. This downloads all the needed scripts in parallel. (Usually, requests for chunks are only issued after the main script has loaded, which makes it sequential.)
 * Adds an inline script loader to inject your main script file asynchronously and after page load, so that page load is not held up.
 * Removes all external stylesheets, and adds them as `<link rel='preload'>` instead. After page load, a CSS loader injected in the page adds the external CSS files. A fallback is also added, for browsers that don't support JS, so that styles don't appear broken for non-JS browsers.
+* If the page contains a CSP meta tag `<meta http-equiv='Content-Security-Policy' content='...'>`, hashes are added to your `script-src` and `style-src` directives, to allow the added inline scripts and styles.
 * Uses [`html-minifier`](https://github.com/kangax/html-minifier) to minify the whole resulting HTML, making several micro-optimisations.
 * Recursively crawls any links you have (useful if you're using client-side routing like with [`react-router`](https://github.com/ReactTraining/react-router)), and optimises those pages too.
 * Writes all the built pre-rendered html files to your build folder, ready for mounting directly to a web-server like nginx.
