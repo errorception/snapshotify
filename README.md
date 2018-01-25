@@ -66,6 +66,7 @@ What it does
   - Preserves rules like `@font-face`.
   - Preserves pseudo-selectors like `::before` or `:hover` for nodes that are on page.
   - Preserves media queries, but again rejects rules for DOM nodes that aren't in the page.
+  - Only retains keyframe animations for animations you are using on the page.
 * Minifies the resulting minimal CSS using [`CSSO`](https://github.com/css/csso). Embeds this into the markup of your HTML directly as an inline style tag.
 * Identifies the minimal fonts needed for the first render of the page, and preloads them using `<link rel='preload' as='font' type='font/woff2' href=''>`.
 * Removes all external script tags (typically your `main.hash.js`), and includes them instead as `<link rel='preload' as='script' href='main.hash.js' />`.
