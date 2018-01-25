@@ -33,13 +33,11 @@ const fontsToPreload = (usedFonts, declaredFonts) => {
 
 const plugin = postcss.plugin('foo', ({ page }) => {
   const promises = [];
-  const usedFonts = [];
   const declaredFonts = [];
+  const usedFonts = [];
+  const usedAnimations = [];
 
-  const makeAsync = fn => rule => promises.push(new Promise(async (resolve, reject) => {
-    try { await fn(rule); resolve(); }
-    catch(e) { reject(e); }
-  }));
+  const makeAsync = fn => rule => promises.push(fn(rule));
 
   const recordDeclaredFonts = rule => {
     const name = rule.nodes.find(n => n.prop === 'font-family').value;
@@ -53,10 +51,26 @@ const plugin = postcss.plugin('foo', ({ page }) => {
       .forEach(n => usedFonts.push(n.value));
   };
 
+  const removeUnusedAnimations = rule => {
+    const isUsed = usedAnimations.some(value => {
+      return value.split(' ').some(part => part === rule.params);
+    });
+
+    if(!isUsed) rule.remove();
+  };
+
+  const recordUsedAnimations = rule => {
+    rule.nodes
+      .filter(n => (n.prop === 'animation' || n.prop === 'animation-name'))
+      .forEach(n => usedAnimations.push(n.value));
+  };
+
   return async css => {
     css.walkAtRules('font-face', recordDeclaredFonts);
 
     css.walkRules(makeAsync(async rule => {
+      if(rule.parent && rule.parent.name && rule.parent.name.includes('keyframes')) return;
+
       const minSelectors = await getMinimalSelectors(page, rule.selectors);
 
       if(!minSelectors.length) {
@@ -66,9 +80,12 @@ const plugin = postcss.plugin('foo', ({ page }) => {
 
       rule.selectors = minSelectors;
       recordUsedFonts(rule);
+      recordUsedAnimations(rule);
     }));
-
     await Promise.all(promises);
+
+    css.walkAtRules('keyframes', removeUnusedAnimations);
+
     css.usedFonts = usedFonts;
     css.declaredFonts = declaredFonts;
   };

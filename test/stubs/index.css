@@ -22,6 +22,7 @@
 .test1, .test-foo {
   color: red;
   font-family: 'MyWebFont', sans-serif;
+  animation: test_anim 1s;
 }
 
 .test2 {
@@ -43,3 +44,12 @@
   }
 }
 
+@keyframes test_anim {
+  0% { height: 0 }
+  100% { height: 100px }
+}
+
+@keyframes test_anim2 { /* Unused */
+  0% { height: 0 }
+  100% { height: 100px }
+}

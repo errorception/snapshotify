@@ -52,6 +52,14 @@ describe('min-css', () => {
     css.includes('.test3').should.be.false();
   });
 
+  it('should return used keyframes', () => {
+    css.includes('test_anim').should.be.true();
+  });
+
+  it('should not return unused keyframes', () => {
+    css.includes('test_anim2').should.be.false();
+  });
+
   it('should return the list of fonts to preload', () => {
     fonts.includes('webfont.woff2').should.be.true();
     fonts.includes('unused-font.woff2').should.be.false();

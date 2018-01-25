@@ -18,10 +18,15 @@ module.exports = async ({ paths, root, config }) => {
   const browser = await puppeteer.launch();
 
   const queue = cq().limit({ concurrency: 10 }).process(async path => {
-    const { markup, links } = await processPath({ browser, path, config });
-    completed.push({ path, markup });
+    try {
+      const { markup, links } = await processPath({ browser, path, config });
+      completed.push({ path, markup });
 
-    dedupeLinks(links).forEach(link => queue(link));
+      dedupeLinks(links).forEach(link => queue(link));
+    } catch(e) {
+      console.error(e);
+      throw e;
+    }
   });
 
   dedupeLinks(paths).forEach(link => queue(link));
