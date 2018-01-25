@@ -6,28 +6,24 @@ const isPreloadSupported = () => {
   } catch(e) {
     return false;
   }
-}
+};
 
 module.exports = () => !isPreloadSupported() ? Promise.resolve() : Promise.all(
   Array.from(document.querySelectorAll('link[rel=preload][as=script]'))
     .map(l => l.getAttribute('href'))
     .map(href => new Promise(resolve => {
       const link = document.createElement('link');
-      link.addEventListener('load', () => {
-        console.log('loaded');
+      const completed = () => {
         link.parentNode.removeChild(link);
         resolve();
-      });
-      link.addEventListener('error', (e) => {
-        console.log('error', e);
-        link.parentNode.removeChild(link);
-        resolve();
-      });
+      };
+
+      link.addEventListener('load', completed);
+      link.addEventListener('error', completed);
 
       Object.entries({ rel: 'preload', as: 'script', href })
         .forEach(([attribute, value]) => link.setAttribute(attribute, value));
 
       document.querySelector('head').appendChild(link);
-      console.log('appended');
     }))
 );

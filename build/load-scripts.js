@@ -18,16 +18,13 @@ module.exports = function () {
   }).map(function (href) {
     return new Promise(function (resolve) {
       var link = document.createElement('link');
-      link.addEventListener('load', function () {
-        console.log('loaded');
+      var completed = function completed() {
         link.parentNode.removeChild(link);
         resolve();
-      });
-      link.addEventListener('error', function (e) {
-        console.log('error', e);
-        link.parentNode.removeChild(link);
-        resolve();
-      });
+      };
+
+      link.addEventListener('load', completed);
+      link.addEventListener('error', completed);
 
       Object.entries({ rel: 'preload', as: 'script', href: href }).forEach(function (_ref) {
         var _ref2 = _slicedToArray(_ref, 2),
@@ -38,7 +35,6 @@ module.exports = function () {
       });
 
       document.querySelector('head').appendChild(link);
-      console.log('appended');
     });
   }));
 };
