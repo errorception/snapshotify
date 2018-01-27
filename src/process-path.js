@@ -8,7 +8,7 @@ const getMinimalCss = require('./min-css');
 const addCSP = require('./add-csp');
 const { minify: minifyJs } = require('uglify-js');
 const {
-  getLinksOnPage, removeEmptyStyleTags, getMarkup,
+  getLinksOnPage, removeEmptyStyleTags,
   preloadifyScripts, preloadifyStylesheets, preloadifyFonts
 } = require('./in-browser-scripts');
 
@@ -31,6 +31,10 @@ const wrapScripts = str => `window.addEventListener('load', function(){${str}});
 
 module.exports = async ({ browser, path, config }) => {
   const page = await browser.newPage();
+
+  page.evaluateOnNewDocument(() => {
+    window.SNAPSHOT = true; // eslint-disable-line no-undef
+  });
 
   await page.goto(path);
   await delay(50);
@@ -79,7 +83,7 @@ module.exports = async ({ browser, path, config }) => {
   await removeEmptyStyleTags(page);
 
   const [ markup, links ] = await Promise.all([
-    minify(await getMarkup(page), minifierOptions),
+    minify(await page.content(), minifierOptions),
     getLinksOnPage(page)
   ]);
 

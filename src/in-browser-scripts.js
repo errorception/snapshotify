@@ -1,27 +1,16 @@
 /* global document */
 
-const withPage = async (page, fn) => {
-  const handle = await page.evaluateHandle(fn);
-  const result = await handle.jsonValue();
-  await handle.dispose();
-  return result;
-};
-
-module.exports.removeEmptyStyleTags = async page => withPage(page, () => {
+module.exports.removeEmptyStyleTags = async page => page.evaluate(() => {
   const styleTags = [...document.querySelectorAll('style[type="text/css"]')];
   const emptyTags = styleTags.filter(tag => !tag.innerHTML);
   emptyTags.forEach(tag => tag.parentNode.removeChild(tag));
 });
 
-module.exports.getLinksOnPage = async page => withPage(page, () => {
+module.exports.getLinksOnPage = async page => page.evaluate(() => {
   return [ ...document.querySelectorAll('a') ].map(a => a.href);
 });
 
-module.exports.getMarkup = async page => withPage(page, () => {
-  return '<!DOCTYPE html>' + document.documentElement.outerHTML;
-});
-
-module.exports.preloadifyScripts = async page => withPage(page, () => {
+module.exports.preloadifyScripts = async page => page.evaluate(() => {
   const removeScript = s => s.parentNode.removeChild(s);
   const addLinkTag = link => {
     const l = document.createElement('link');
@@ -39,7 +28,7 @@ module.exports.preloadifyScripts = async page => withPage(page, () => {
   });
 });
 
-module.exports.preloadifyStylesheets = async page => withPage(page, () => {
+module.exports.preloadifyStylesheets = async page => page.evaluate(() => {
   const stylesheets = [ ...document.querySelectorAll('link[rel=stylesheet]') ];
   stylesheets.forEach(linkTag => {
     const preloadTag = document.createElement('link');

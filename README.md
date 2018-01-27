@@ -103,6 +103,10 @@ The following properties are mostly only useful for debugging:
 * `dryRun`: (boolean, default `false`) Does a dry run. Doesn't write any files to the `build` directory. Just generates a report after processing your app.
 * `printConsoleLogs`: (boolean, default `false`) Prints `console.log` lines from your app, as reported by `puppeteer`, to stdout.
 
+Detecting snapshot
+---
+Sometimes, it may be necessary to detect if you are running in the snapshot mode, so that you can serve up alternative content. To enable this, a global `window.SNAPSHOT` variable is set to `true` when taking the snapshot.
+
 Notes
 ---
 * Works great with CSS-in-JS libs. I've tried `glamor`.
