@@ -5,7 +5,7 @@ const crawl = require('./crawler');
 const createExpressApp = require('./create-express-app');
 const path = require('path');
 const mkdirp = require('mkdirp');
-const { writeFile, readFileSync } = require('fs');
+const { writeFile, readFileSync, readFile } = require('fs');
 const { promisify } = require('util');
 const { gzip } = require('zlib');
 const pgzip = promisify(gzip);
@@ -55,7 +55,8 @@ const write = async (diskPath, markup) => {
 
   const app = createExpressApp(path.join(process.cwd(), 'build'));
   const server = await app.listen(port);
-  const filesToWrite = await crawl({ paths: [`${root}/`], root, config });
+  const filesToWrite = await crawl({ paths: [`${root}/`, `${root}/404`], root, config });
+  filesToWrite.push({ path: `${root}/200`, markup: await promisify(readFile)(path.join('.', 'build', 'index.html')) });
   await server.close();
 
   if(!config.dryRun) {
