@@ -36,6 +36,7 @@ module.exports = async ({ browser, path, config }) => {
     window.SNAPSHOT = true; // eslint-disable-line no-undef
   });
 
+  await page.setBypassCSP(true);
   await page.goto(path);
   await delay(50);
 
