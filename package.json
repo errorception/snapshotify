@@ -1,6 +1,6 @@
 {
   "name": "snapshotify",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Creates a static HTML snapshot for your `create-react-app` app, to improve initial page load times.",
   "homepage": "https://github.com/errorception/snapshotify",
   "repository": "github:errorception/snapshotify",
