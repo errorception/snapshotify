@@ -2,7 +2,7 @@ snapshotify
 ===
 [![NPM version](https://img.shields.io/npm/v/snapshotify.svg)](https://www.npmjs.com/package/snapshotify)
 [![Build Status](https://travis-ci.org/errorception/snapshotify.svg?branch=master)](https://travis-ci.org/errorception/snapshotify)
-[![dependencies Status](https://img.shields.io/david/errorception/snapshotify.svg)](https://david-dm.org/errorception/snapshotify)
+[![dependencies Status](https://img.shields.io/david/errorception/snapshotify.svg)](https://david-dm.org/errorception/snapshotify) [![Greenkeeper badge](https://badges.greenkeeper.io/errorception/snapshotify.svg)](https://greenkeeper.io/)
 
 
 Creates a static HTML snapshot for your [`create-react-app`](https://github.com/facebookincubator/create-react-app) app, to improve initial page load times. Makes for blazing fast load times, and improves SEO.
