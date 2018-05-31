@@ -8,7 +8,7 @@ const getMinimalCss = require('./min-css');
 const addCSP = require('./add-csp');
 const { minify: minifyJs } = require('uglify-js');
 const {
-  getLinksOnPage, removeEmptyStyleTags,
+  getLinksOnPage, removeEmptyStyleTags, getLintResults,
   preloadifyScripts, preloadifyStylesheets, preloadifyFonts
 } = require('./in-browser-scripts');
 
@@ -88,7 +88,9 @@ module.exports = async ({ browser, path, config }) => {
     getLinksOnPage(page)
   ]);
 
+  const lint = await getLintResults(page);
+
   await page.close();
 
-  return { markup, links };
+  return { markup, links, lint };
 };

@@ -58,3 +58,17 @@ module.exports.preloadifyFonts = async (page, fonts) => page.evaluate(fonts => {
     document.head.appendChild(link);
   });
 }, fonts);
+
+const lintNames = {
+  noTitle: 'no-title',
+  noMetaDescription: 'no-meta-description'
+};
+
+module.exports.lintNames = lintNames;
+
+module.exports.getLintResults = async page => page.evaluate(lintNames => {
+  return [
+    document.querySelector('title') ? null : lintNames.noTitle,
+    document.querySelector('meta[name="description"][content]') ? null : lintNames.noMetaDescription
+  ].filter(x => x);
+}, lintNames);

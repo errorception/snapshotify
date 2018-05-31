@@ -19,8 +19,8 @@ module.exports = async ({ paths, root, config }) => {
 
   const queue = cq().limit({ concurrency: 10 }).process(async path => {
     try {
-      const { markup, links } = await processPath({ browser, path, config });
-      completed.push({ path, markup });
+      const { markup, links, lint } = await processPath({ browser, path, config });
+      completed.push({ path, markup, lint });
 
       dedupeLinks(links).forEach(link => queue(link));
     } catch(e) {

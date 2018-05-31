@@ -56,7 +56,7 @@ const write = async (diskPath, markup) => {
   const app = createExpressApp(path.join(process.cwd(), 'build'));
   const server = await app.listen(port);
   const filesToWrite = await crawl({ paths: [`${root}/`, `${root}/404`], root, config });
-  filesToWrite.push({ path: `${root}/200`, markup: await promisify(readFile)(path.join('.', 'build', 'index.html')) });
+  filesToWrite.push({ path: `${root}/200`, markup: await promisify(readFile)(path.join('.', 'build', 'index.html')), lint: [] });
   await server.close();
 
   if(!config.dryRun) {
@@ -67,13 +67,24 @@ const write = async (diskPath, markup) => {
   console.log('\nFile sizes after gzip:\n');
 
   (await Promise.all(
-    filesToWrite.map(async ({ path, markup }) => ({ path, gzipped: await pgzip(markup) }))
-  )).forEach(({ path, gzipped }) => {
+    filesToWrite.map(async ({ path, markup, lint }) => ({ path, lint, gzipped: await pgzip(markup) }))
+  )).forEach(({ path, lint, gzipped }) => {
     const gzippedSize = (gzipped.length / 1024).toFixed(2);
     const pathSnipped = path.slice(root.length) || '/';
     const paddedGzippedSize = `     ${gzippedSize}`;
 
-    console.log(`${paddedGzippedSize.substr(paddedGzippedSize.length - 8)} KB  \x1b[36m${pathSnipped}\x1b[0m → \x1b[2m${fileNameFromPath(path)}\x1b[0m`);
+    console.log(
+      [
+        `${paddedGzippedSize.substr(paddedGzippedSize.length - 8)} KB  `,
+        `\x1b[36m${pathSnipped}\x1b[0m`,
+        ' → ',
+        `\x1b[2m${fileNameFromPath(path)}\x1b[0m`,
+        ...(lint.length ? [
+          '  \x1b[33mWarning: ',
+          `${lint.join(', ')}\x1b[0m`
+        ] : [])
+      ].join('')
+    );
   });
 
   console.log('\n');
