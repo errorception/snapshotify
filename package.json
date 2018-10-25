@@ -23,7 +23,7 @@
     "csso": "^3.5.0",
     "delay2": "^1.0.2",
     "express": "^4.16.2",
-    "html-minifier": "^3.5.8",
+    "html-minifier": "3.5.20",
     "mkdirp": "^0.5.1",
     "postcss": "^6.0.16",
     "puppeteer": "^1.4.0",
