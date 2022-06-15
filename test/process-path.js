@@ -17,7 +17,9 @@ describe('process-path', () => {
     const app = createExpressApp(path.join('.', 'test', 'stubs'));
     server = await app.listen(port);
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const config = {
       inlineCSS: true,
       preloadScripts: true
