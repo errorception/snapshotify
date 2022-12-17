@@ -11,7 +11,7 @@ const getMinimalSelectors = async (page, selectors) => {
   return page.evaluate(selectors => {
     return selectors
       //.map(s => s.replace(/::.*/i, ''))   // ::before, etc
-      .filter(s => document.querySelector(s.replace(/::.*/i, '')));
+      .filter(s => s.replace(/::.*/i, '') && document.querySelector(s.replace(/::.*/i, '')));
   }, selectors);
 };
 
